@@ -98,6 +98,7 @@ int query(int argc, char** argv) {
                "A real value in [0,1] indicating the requested minimal fraction of positive k-mers "
                "per read. Default value is 0.0.",
                "-t", false);
+    parser.add("every_kmer", "Performs a lookup for every k-mer in the reads. Sets the threshold to 1.", "--every-kmer", true);
     if (!parser.parse()) return 1;
 
     auto index_filename = parser.get<std::string>("index_filename");
@@ -112,10 +113,13 @@ int query(int argc, char** argv) {
     double threshold = 0.0;
     if (parser.parsed("threshold")) threshold = parser.get<double>("threshold");
 
+    bool every_kmer = parser.get<bool>("every_kmer");
+    if (every_kmer) threshold = 1;
+
     essentials::logger("performing queries from file '" + query_filename + "'...");
     essentials::timer<std::chrono::high_resolution_clock, std::chrono::microseconds> t;
     t.start();
-    auto report = dict.streaming_query_from_file(query_filename, threshold);
+    auto report = dict.streaming_query_from_file(query_filename, threshold, every_kmer);
     t.stop();
     essentials::logger("DONE");
 

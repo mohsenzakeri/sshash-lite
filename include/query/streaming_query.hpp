@@ -11,7 +11,7 @@ namespace sshash {
 
 template <typename Query, bool FASTQ>
 streaming_query_report streaming_query_from_fastx_file(dictionary const* dict, std::istream& is,
-                                                       double threshold) {
+                                                       double threshold, bool every_kmer) {
     /*
 
     We assume the query file is well-formed, that is:
@@ -65,7 +65,7 @@ streaming_query_report streaming_query_from_fastx_file(dictionary const* dict, s
                 }
             } else {
                 num_negative_kmers_in_read += 1;
-                if (num_negative_kmers_in_read >= max_num_negative_kmers_in_read) {
+                if (num_negative_kmers_in_read >= max_num_negative_kmers_in_read and !every_kmer) {
 #ifdef SSHASH_QUERY_VERBOSE_OUTPUT
                     std::cerr << '0';
                     std::cerr << '\n';
@@ -91,7 +91,7 @@ streaming_query_report streaming_query_from_fastx_file(dictionary const* dict, s
 }
 
 streaming_query_report dictionary::streaming_query_from_file(std::string const& filename,
-                                                             double threshold) const {
+                                                             double threshold, bool every_kmer = false) const {
     std::ifstream is(filename.c_str());
     if (!is.good()) throw std::runtime_error("error in opening the file '" + filename + "'");
     streaming_query_report report;
@@ -100,35 +100,35 @@ streaming_query_report dictionary::streaming_query_from_file(std::string const& 
         zip_istream zis(is);
         if (canonicalized()) {
             report = streaming_query_from_fastx_file<streaming_query_canonical_parsing, false>(
-                this, zis, threshold);
+                this, zis, threshold, every_kmer);
         } else {
             report = streaming_query_from_fastx_file<streaming_query_regular_parsing, false>(
-                this, zis, threshold);
+                this, zis, threshold, every_kmer);
         }
     } else if (util::ends_with(filename, ".fq.gz") or util::ends_with(filename, ".fastq.gz")) {
         zip_istream zis(is);
         if (canonicalized()) {
             report = streaming_query_from_fastx_file<streaming_query_canonical_parsing, true>(
-                this, zis, threshold);
+                this, zis, threshold, every_kmer);
         } else {
             report = streaming_query_from_fastx_file<streaming_query_regular_parsing, true>(
-                this, zis, threshold);
+                this, zis, threshold, every_kmer);
         }
     } else if (util::ends_with(filename, ".fa") or util::ends_with(filename, ".fasta")) {
         if (canonicalized()) {
             report = streaming_query_from_fastx_file<streaming_query_canonical_parsing, false>(
-                this, is, threshold);
+                this, is, threshold, every_kmer);
         } else {
             report = streaming_query_from_fastx_file<streaming_query_regular_parsing, false>(
-                this, is, threshold);
+                this, is, threshold, every_kmer);
         }
     } else if (util::ends_with(filename, ".fq") or util::ends_with(filename, ".fastq")) {
         if (canonicalized()) {
             report = streaming_query_from_fastx_file<streaming_query_canonical_parsing, true>(
-                this, is, threshold);
+                this, is, threshold, every_kmer);
         } else {
             report = streaming_query_from_fastx_file<streaming_query_regular_parsing, true>(
-                this, is, threshold);
+                this, is, threshold, every_kmer);
         }
     }
 

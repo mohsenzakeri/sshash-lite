@@ -27,7 +27,7 @@ struct dictionary {
     friend struct streaming_query_canonical_parsing;
     friend struct streaming_query_regular_parsing;
     streaming_query_report streaming_query_from_file(std::string const& filename,
-                                                     double threshold) const;
+                                                     double threshold, bool every_kmer) const;
 
     uint64_t num_bits() const;
     void print_info() const;
